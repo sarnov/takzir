@@ -1,9 +1,12 @@
 
 import re
+from constants import dir_name_map
 
 class HoveretProcessor:
 
-    html_prefix = '<!DOCTYPE html>\n<html dir="rtl" lang="he">\n<head>\n</head>\n<body>\n'
+    html_prefix = '<!DOCTYPE html>\n<html dir="rtl" lang="he">\n<head>\n' + \
+         '<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>'
+    title_suffix = '</title>\n</head>\n<body>\n'
     html_suffix = '</body>\n</html>'
     numbers_re = re.compile ('[0-9A-Z]+[/.,+%]*[0-9A-Z]+[/.,+%]*[0-9A-Z]*')
     header_re = re.compile ('(<br>\s*=.*?<br>)\s*(?:\[.*?\])?([\*\(].*?\)(?:\.| <br>|<br>))')
@@ -14,7 +17,7 @@ class HoveretProcessor:
     def __init__(self, hoveret):
         self.hoveret = hoveret
 
-    def process_hoveret(self):
+    def process_hoveret(self, volume, hoveret_num):
         self.hoveret="<br>"+self.hoveret
         self.hoveret=self.hoveret.replace('╚',"<br>")
         self.hoveret=self.hoveret.replace(')',"^^^")
@@ -34,7 +37,11 @@ class HoveretProcessor:
         self.hoveret = self.hoveret[:end_pos]
         while self.hoveret.find("<br><br>")>0:
             self.hoveret=self.hoveret.replace("<br><br>", "<br>")
-        self.hoveret=self.html_prefix+self.hoveret+self.html_suffix 
+        if volume is not None:
+            title = "תקציר סביר כרך " + dir_name_map[volume] + " חוברת " + str(hoveret_num)
+        else:
+            title = "תקציר סביר"
+        self.hoveret=self.html_prefix + title + self.title_suffix + self.hoveret + self.html_suffix 
         return self.hoveret 
 
     def inverse_numbers(self):
@@ -90,7 +97,7 @@ class HoveretProcessor:
         while match is not None:
             s=match.span()     
             orig_footer_str = self.hoveret[s[0]+start_pos:s[1]+start_pos]
-            footer_str = "<h4>"+orig_footer_str+"</h4>"        
+            footer_str = "<h4>"+orig_footer_str+"</h4><br>"        
             self.hoveret = self.hoveret[:s[0]+start_pos] + footer_str+ self.hoveret[s[1]+start_pos:]
             start_pos = s[1]+start_pos
             match = self.footer_re.search(self.hoveret[start_pos:])

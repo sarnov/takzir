@@ -19,7 +19,13 @@ for vol_dir in volumes:
         if os.path.isfile(hoveret_file):
             with open(hoveret_file,"r",encoding="cp862") as f:            
                 hoveret = f.read()
-            hoveret = HoveretProcessor(hoveret).process_hoveret()
+            try:
+                volume = int(os.path.basename(hoveret_file).split(".")[0].split("-")[0])
+                hoveret_num = int(os.path.basename(hoveret_file).split(".")[0].split("-")[1])
+            except:
+                volume = None
+                hoveret_num = None
+            hoveret = HoveretProcessor(hoveret).process_hoveret(volume, hoveret_num)
             html_filename = filename.upper().replace("HG1","html")
             out_dir_path = os.path.join(processed_dir, vol_dir).lower()
             try:
