@@ -1,15 +1,16 @@
 
 import re
-from constants import dir_name_map
+from constants import dir_name_map, google_analytics_tag
 
 class HoveretProcessor:
 
     html_prefix = '<!DOCTYPE html>\n<html dir="rtl" lang="he">\n<head>\n' + \
          '<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>'
-    title_suffix = '</title>\n</head>\n<body>\n'
+    title_suffix = '</title>\n</head>\n' + google_analytics_tag + '<body>\n'
     html_suffix = '</body>\n</html>'
     numbers_re = re.compile ('[0-9A-Z]+[/.,+%]*[0-9A-Z]+[/.,+%]*[0-9A-Z]*')
     header_re = re.compile ('(<br>\s*=.*?<br>)\s*(?:\[.*?\])?([\*\(].*?\)(?:\.| <br>|<br>))')
+    header_parts_re = re.compile ('<br>\s*=(.*?)-(.*?)<br>')
     page_re = re.compile ('<br>[0-9 ]*תקציר פסקי דין.*?<br>')
     footer_re = re.compile ('<br>....בפני.*?<br>|<br>...בפני.*?<br>|<br>..בפני.*?<br>|<br>בפני.*?<br>|<br>.בפני.*?<br>')
     initial_header_re = re.compile('(?:בתוכן|ב ת ו כ ן).*?=')
@@ -70,7 +71,17 @@ class HoveretProcessor:
         while match is not None:
             s0=match.span(1)
             orig_header_str = self.hoveret[s0[0]+start_pos:s0[1]+start_pos]
-            header_str = "<h2>"+orig_header_str[5:]+"</h2>"        
+            header_parts = self.header_parts_re.search(orig_header_str)
+            if header_parts is not None:
+                psk_num = header_parts.groups()[0]
+            else:
+                header_parts = orig_header_str.split(" ")
+                psk_num = header_parts[0]
+                if len(header_parts) > 1:
+                    psk_num += orig_header_str.split(" ")[1]
+                    psk_num = psk_num.replace('=',"").replace('<br>',"")
+            psk_key = psk_num.replace(' ',"").replace('.',"").replace('"',"").replace('/',"_")
+            header_str = f"<h2 id={psk_key}>"+orig_header_str[5:]+"</h2>"        
             s1=match.span(2)
             orig_secondary_header_str = self.hoveret[s1[0]+start_pos:s1[1]+start_pos]
             if len(orig_secondary_header_str) < 200:
@@ -101,4 +112,3 @@ class HoveretProcessor:
             self.hoveret = self.hoveret[:s[0]+start_pos] + footer_str+ self.hoveret[s[1]+start_pos:]
             start_pos = s[1]+start_pos
             match = self.footer_re.search(self.hoveret[start_pos:])
-        print(match)

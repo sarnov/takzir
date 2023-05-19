@@ -72,3 +72,6 @@ dir_name_map = {
     71:'ע"א',
     72:'ע"ב',
 }
+
+google_analytics_tag = '<!-- Google tag (gtag.js) --> \n <script async src="https://www.googletagmanager.com/gtag/js?id=G-N2R4D45JK4"></script>\n'  + \
+ "<script>\n window.dataLayer = window.dataLayer || [];\n  function gtag(){dataLayer.push(arguments);}\n  gtag('js', new Date());\n gtag('config', 'G-N2R4D45JK4');\n</script>\n"
